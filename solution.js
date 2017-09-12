@@ -2,9 +2,9 @@
 if (typeof window == 'undefined') var window = global.window;
 
 function drawNestedSetsTree(data, node) {
-  let tree = {};
+  let virtualTree = {};
 
-  function parseTree(data) {
+  function parseNestedSet(data) {
     const {
       minLeft,
       maxRight,
@@ -14,10 +14,27 @@ function drawNestedSetsTree(data, node) {
       return { minLeft, maxRight };
     });
 
+    if (maxRight <= minLeft) throw new Error('Nested Set error');
+    virtualTree = {};
+    let item = findByLeft(minLeft);
+    virtualTree = {
+      title: item.title,
+      id: `${item.left}_${item.right}`,
+      children: getChildren(item.left, item.right, data),
+    };
+
+    function getChildren(left, right, data) {
+        
+    }
+    for (let i = minLeft; i <= maxRight; i++) {}
+
     console.log(minLeft, maxRight);
   }
+  function findByLeft(left = 0) {
+    return data.filter(item => item.left == left)[0];
+  }
 
-  tree = parseTree(data);
+  parseTree(data);
 }
 
 var data = [
