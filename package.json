@@ -1,0 +1,20 @@
+{
+  "name": "testVue",
+  "version": "1.0.0",
+  "main": "solution.js",
+  "author": "malmax <malmax.spb@gmail.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "eslint": "^4.6.1",
+    "eslint-config-airbnb": "^15.1.0",
+    "eslint-plugin-import": "^2.7.0",
+    "eslint-plugin-jsx-a11y": "^5.1.1",
+    "eslint-plugin-react": "^7.3.0"
+  },
+  "dependencies": {
+    "nodemon": "^1.12.0"
+  },
+  "scripts": {
+    "start": "nodemon ./solution.js"
+  }
+}
