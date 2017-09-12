@@ -1,43 +1,50 @@
 'use strict';
-if (typeof window == 'undefined') var window = global.window;
 
-function drawNestedSetsTree(data, node) {
+// if (typeof window === 'undefined') var window = global.window;
+
+function drawNestedSetsTree(data, mountPoint) {
   let virtualTree = {};
 
-  function parseNestedSet(data) {
-    const {
-      minLeft,
-      maxRight,
-    } = data.reduce(({ minLeft = Infinity, maxRight = 0 }, item) => {
-      if (item.left < minLeft) minLeft = item.left;
-      if (item.right > maxRight) maxRight = item.right;
-      return { minLeft, maxRight };
-    });
-
-    if (maxRight <= minLeft) throw new Error('Nested Set error');
-    virtualTree = {};
-    let item = findByLeft(minLeft);
-    virtualTree = {
-      title: item.title,
-      id: `${item.left}_${item.right}`,
-      children: getChildren(item.left, item.right, data),
-    };
-
-    function getChildren(left, right, data) {
-        
-    }
-    for (let i = minLeft; i <= maxRight; i++) {}
+  function parseNestedSet() {
+    const { minLeft, maxRight } = data.reduce(
+      ({ minLeft, maxRight }, item) => {
+        if (item.left < minLeft) minLeft = item.left;
+        if (item.right > maxRight) maxRight = item.right;
+        return { minLeft, maxRight };
+      },
+      { minLeft: Infinity, maxRight: 0 },
+    );
 
     console.log(minLeft, maxRight);
-  }
-  function findByLeft(left = 0) {
-    return data.filter(item => item.left == left)[0];
+
+    if (maxRight <= minLeft) throw new Error('Nested Set error');
+
+    function getChildren(item, parent) {
+      const out = {
+        title: item.title,
+        id: `${item.left}_${item.right}`,
+        children: [],
+      };
+      for (let i = item.left + 1; i < item.right; i++) {
+        const children = data.filter(iterator => iterator.left === i)[0];
+        out.children.push(getChildren(children));
+        i = children.right;
+      }
+
+      return out;
+    }
+
+    const root = data.filter(iterator => iterator.left === minLeft)[0];
+
+    virtualTree = getChildren(root);
+
+    console.log(virtualTree);
   }
 
-  parseTree(data);
+  parseNestedSet(data);
 }
 
-var data = [
+const data = [
   {
     title: 'Одежда',
     left: 1,
