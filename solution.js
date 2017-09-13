@@ -23,9 +23,7 @@ function drawNestedSetsTree(data, node) {
       children: getChildren(item.left, item.right, data),
     };
 
-    function getChildren(left, right, data) {
-        
-    }
+    function getChildren(left, right, data) {}
     for (let i = minLeft; i <= maxRight; i++) {}
 
     console.log(minLeft, maxRight);
@@ -34,7 +32,7 @@ function drawNestedSetsTree(data, node) {
     return data.filter(item => item.left == left)[0];
   }
 
-  parseTree(data);
+  parseNestedSet(data);
 }
 
 var data = [
