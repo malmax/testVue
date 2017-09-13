@@ -1,5 +1,6 @@
-function drawNestedSetsTree(data, mountPoint) {
+function drawNestedSetsTree(dataIn, mountPoint) {
   let virtualTree = {};
+  const data = dataIn;
 
   function parseNestedSet() {
     const { left: minLeft, right: maxRight } = data.reduce(
@@ -23,7 +24,6 @@ function drawNestedSetsTree(data, mountPoint) {
 
     function getChildren(item, parent) {
       if (!item.title) {
-        console.log(item);
         return false;
       }
 
@@ -65,43 +65,103 @@ function drawNestedSetsTree(data, mountPoint) {
     const root = data.filter(elem => elem.left === minLeft)[0];
 
     virtualTree = getChildren(root, { childrenContainer: mountPoint });
-
-    console.log(virtualTree);
   }
 
   function callElemTree(element, callback) {
-    console.log(element);
     callback(element);
     element.childrens.forEach(elem => callElemTree(elem, callback));
   }
 
-  parseNestedSet(data);
+  // преобразовываем виртуальный дом в Nested Set
+  function virtualTreeToNested() {
+    let start = -1;
+    const plainTree = [];
+    callElemTree(virtualTree, (itemVirtualTree) => {
+      start += 2;
+      const current = {
+        title: itemVirtualTree.title,
+        left: start,
+        right: start + 1,
+        id: itemVirtualTree.id,
+      };
+      plainTree.push(current);
 
-  let start = 0;
-  const plainTree = [];
-  callElemTree(virtualTree, (itemVirtualTree) => {
-    start += 1;
-    plainTree.push({
-      title: itemVirtualTree.title,
-      left: start,
-      right: start + 1,
+      if (itemVirtualTree.parent.id) {
+        let parent = itemVirtualTree.parent;
+        do {
+          plainTree.forEach((iterator) => {
+            if (iterator.id === parent.id) {
+              iterator.right += 2;
+              current.left -= 1;
+              current.right -= 1;
+            }
+          });
+          if (parent.parent.title) parent = parent.parent;
+          else parent = false;
+        } while (parent);
+      }
     });
 
-    if (itemVirtualTree.parent.title) {
-      let parent = itemVirtualTree.parent;
-      do {
-        plainTree.forEach((iterator) => {
-          if (iterator.title === parent.title) {
-            iterator.right = iterator.right > start + 1 ? iterator.right : start + 1;
-          }
-        });
-        if (parent.parent.title) parent = parent.parent;
-        else parent = false;
-      } while (parent);
-    }
-  });
+    // убираем вспомогательное поле
+    return plainTree.map((nestedElem) => {
+      const copy = Object.assign({}, nestedElem);
+      delete copy.id;
+      return copy;
+    });
+  }
 
-  console.log(plainTree);
+  // навешиваем обработчик
+  function setListener() {
+    // helpers
+    function allowDrop(ev) {
+      ev.preventDefault();
+    }
+
+    function drag(ev) {
+      ev.dataTransfer.setData('text', ev.target.id);
+    }
+
+    function drop(ev) {
+      ev.preventDefault();
+      const data = ev.dataTransfer.getData('text');
+
+      ev.target.appendChild(document.getElementById(data));
+    }
+
+    function changeBorder(ev) {
+      const target = ev.target;
+      if (target.style.color) target.style.color = '';
+      else target.style.color = 'purple';
+    }
+
+    callElemTree(virtualTree, (element) => {
+      const dom = element.domElement;
+
+      dom.setAttribute('draggable', true);
+      dom.addEventListener('dragstart', drag);
+      dom.addEventListener('drop', drop);
+      dom.addEventListener('dragover', allowDrop);
+      dom.addEventListener('dragenter', changeBorder);
+      dom.addEventListener('dragleave', changeBorder);
+    });
+  }
+
+  function render() {
+    // если перерендер - размонтируем все
+    if (virtualTree.domElement) {
+      mountPoint.removeChild(virtualTree.domElement);
+      mountPoint.removeChild(virtualTree.childrenContainer);
+      virtualTree = {};
+    }
+
+    // создаем виртуальный дом и монтируем
+    parseNestedSet();
+    setListener();
+  }
+
+  render();
+
+  return { save: virtualTreeToNested };
 }
 
 const data = [
@@ -161,5 +221,3 @@ const data = [
     right: 15,
   },
 ];
-
-const tree = drawNestedSetsTree(data, document.getElementById('root'));
