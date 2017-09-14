@@ -1,6 +1,6 @@
 function drawNestedSetsTree(dataIn, mountPoint) {
   let virtualTree = {};
-  const data = dataIn;
+  let data = dataIn;
 
   function parseNestedSet() {
     const { left: minLeft, right: maxRight } = data.reduce(
@@ -123,9 +123,29 @@ function drawNestedSetsTree(dataIn, mountPoint) {
 
     function drop(ev) {
       ev.preventDefault();
-      const data = ev.dataTransfer.getData('text');
+      const dragId = ev.dataTransfer.getData('text');
 
-      ev.target.appendChild(document.getElementById(data));
+      // делаем текущий элемент чайлдом того на которого сбросили
+      let dragInTree;
+      callElemTree(virtualTree, (item) => {
+        if (item.id === dragId) dragInTree = item;
+      });
+      let dropInTree;
+      callElemTree(virtualTree, (item) => {
+        if (item.id === ev.target.id) dropInTree = item;
+      });
+
+      if (dragInTree && dropInTree) {
+        // убираем у родителя себя из массива чилдронов
+        dragInTree.parent.childrens = dragInTree.parent.childrens.filter(
+          item => item.id !== dragInTree.id,
+        );
+        // добавляем себя в чайлды дроп элемента
+        dropInTree.childrens.push(dragInTree);
+
+        render();
+
+      }
     }
 
     function changeBorder(ev) {
@@ -149,6 +169,10 @@ function drawNestedSetsTree(dataIn, mountPoint) {
   function render() {
     // если перерендер - размонтируем все
     if (virtualTree.domElement) {
+      // пересоздаем Nested Set
+      console.log(virtualTree);
+      data = virtualTreeToNested();
+      console.log(data);
       mountPoint.removeChild(virtualTree.domElement);
       mountPoint.removeChild(virtualTree.childrenContainer);
       virtualTree = {};
