@@ -1,10 +1,21 @@
+var debug;
+var parseDebug;
+
 function drawNestedSetsTree(dataIn, mountPoint) {
   let virtualTree = {};
   let data = dataIn;
 
+  parseDebug = virtualTreeToNested;
+
   function parseNestedSet() {
-    const { left: minLeft, right: maxRight } = data.reduce(
-      ({ left: lastLeft, right: lastRight }, item) => {
+    const {
+      left: minLeft,
+      right: maxRight
+    } = data.reduce(
+      ({
+        left: lastLeft,
+        right: lastRight
+      }, item) => {
         let left = lastLeft;
         let right = lastRight;
         if (item.left < left) left = item.left;
@@ -13,8 +24,7 @@ function drawNestedSetsTree(dataIn, mountPoint) {
           left,
           right,
         };
-      },
-      {
+      }, {
         left: Infinity,
         right: 0,
       },
@@ -64,7 +74,9 @@ function drawNestedSetsTree(dataIn, mountPoint) {
 
     const root = data.filter(elem => elem.left === minLeft)[0];
 
-    virtualTree = getChildren(root, { childrenContainer: mountPoint });
+    virtualTree = getChildren(root, {
+      childrenContainer: mountPoint
+    });
   }
 
   function callElemTree(element, callback) {
@@ -74,6 +86,7 @@ function drawNestedSetsTree(dataIn, mountPoint) {
 
   // преобразовываем виртуальный дом в Nested Set
   function virtualTreeToNested() {
+    console.log('toNested', virtualTree);
     let start = -1;
     const plainTree = [];
     callElemTree(virtualTree, (itemVirtualTree) => {
@@ -91,6 +104,7 @@ function drawNestedSetsTree(dataIn, mountPoint) {
         do {
           plainTree.forEach((iterator) => {
             if (iterator.id === parent.id) {
+
               iterator.right += 2;
               current.left -= 1;
               current.right -= 1;
@@ -143,6 +157,7 @@ function drawNestedSetsTree(dataIn, mountPoint) {
         // добавляем себя в чайлды дроп элемента
         dropInTree.childrens.push(dragInTree);
 
+        debug = virtualTree;
         render();
 
       }
@@ -185,11 +200,12 @@ function drawNestedSetsTree(dataIn, mountPoint) {
 
   render();
 
-  return { save: virtualTreeToNested };
+  return {
+    save: virtualTreeToNested
+  };
 }
 
-const data = [
-  {
+const data = [{
     title: 'Одежда',
     left: 1,
     right: 22,
