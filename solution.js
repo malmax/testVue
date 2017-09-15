@@ -1,21 +1,10 @@
-var debug;
-var parseDebug;
-
 function drawNestedSetsTree(dataIn, mountPoint) {
   let virtualTree = {};
   let data = dataIn;
 
-  parseDebug = virtualTreeToNested;
-
   function parseNestedSet() {
-    const {
-      left: minLeft,
-      right: maxRight
-    } = data.reduce(
-      ({
-        left: lastLeft,
-        right: lastRight
-      }, item) => {
+    const { left: minLeft, right: maxRight } = data.reduce(
+      ({ left: lastLeft, right: lastRight }, item) => {
         let left = lastLeft;
         let right = lastRight;
         if (item.left < left) left = item.left;
@@ -24,7 +13,8 @@ function drawNestedSetsTree(dataIn, mountPoint) {
           left,
           right,
         };
-      }, {
+      },
+      {
         left: Infinity,
         right: 0,
       },
@@ -75,7 +65,7 @@ function drawNestedSetsTree(dataIn, mountPoint) {
     const root = data.filter(elem => elem.left === minLeft)[0];
 
     virtualTree = getChildren(root, {
-      childrenContainer: mountPoint
+      childrenContainer: mountPoint,
     });
   }
 
@@ -86,7 +76,6 @@ function drawNestedSetsTree(dataIn, mountPoint) {
 
   // преобразовываем виртуальный дом в Nested Set
   function virtualTreeToNested() {
-    console.log('toNested', virtualTree);
     let start = -1;
     const plainTree = [];
     callElemTree(virtualTree, (itemVirtualTree) => {
@@ -104,7 +93,6 @@ function drawNestedSetsTree(dataIn, mountPoint) {
         do {
           plainTree.forEach((iterator) => {
             if (iterator.id === parent.id) {
-
               iterator.right += 2;
               current.left -= 1;
               current.right -= 1;
@@ -154,12 +142,11 @@ function drawNestedSetsTree(dataIn, mountPoint) {
         dragInTree.parent.childrens = dragInTree.parent.childrens.filter(
           item => item.id !== dragInTree.id,
         );
+        dragInTree.parent = dropInTree;
         // добавляем себя в чайлды дроп элемента
         dropInTree.childrens.push(dragInTree);
 
-        debug = virtualTree;
         render();
-
       }
     }
 
@@ -167,6 +154,27 @@ function drawNestedSetsTree(dataIn, mountPoint) {
       const target = ev.target;
       if (target.style.color) target.style.color = '';
       else target.style.color = 'purple';
+    }
+
+    function deleteNode(ev) {
+      callElemTree(virtualTree, (item) => {
+        if (item.id === ev.target.id && item.parent.id) {
+          const childrens = [];
+          item.parent.childrens.forEach((child) => {
+            if (child.id === item.id) {
+              item.childrens.forEach((childIn) => {
+                childIn.parent = item.parent;
+                childrens.push(childIn);
+              });
+            } else {
+              childrens.push(child);
+            }
+          });
+          item.parent.childrens = childrens;
+        }
+      });
+
+      render();
     }
 
     callElemTree(virtualTree, (element) => {
@@ -178,6 +186,7 @@ function drawNestedSetsTree(dataIn, mountPoint) {
       dom.addEventListener('dragover', allowDrop);
       dom.addEventListener('dragenter', changeBorder);
       dom.addEventListener('dragleave', changeBorder);
+      dom.addEventListener('dblclick', deleteNode);
     });
   }
 
@@ -185,9 +194,7 @@ function drawNestedSetsTree(dataIn, mountPoint) {
     // если перерендер - размонтируем все
     if (virtualTree.domElement) {
       // пересоздаем Nested Set
-      console.log(virtualTree);
       data = virtualTreeToNested();
-      console.log(data);
       mountPoint.removeChild(virtualTree.domElement);
       mountPoint.removeChild(virtualTree.childrenContainer);
       virtualTree = {};
@@ -201,7 +208,7 @@ function drawNestedSetsTree(dataIn, mountPoint) {
   render();
 
   return {
-    save: virtualTreeToNested
+    save: virtualTreeToNested,
   };
 }
 
